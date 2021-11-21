@@ -13,19 +13,28 @@ import java.util.Collections;
  * longer). Similarly, the extension is stored in an array of length 3.
  */
 class PathElement {
+
+    byte[] b;
+
+    PathElement(String s) {
+        String[] table = s.split("\\.", 2);
+        ByteBuffer content = ByteBuffer.allocate(11).put(PathElement.getBytename(table[0], 8), 0, 8);
+        if (table.length == 2) {
+            content.put(table[1].getBytes(), 0, 3);
+        }
+        this.b = content.array();
+    }
+
     public byte[] getName() {
-        // TODO
-        return null;
+        return Arrays.copyOfRange(this.b, 0, 8);
     }
 
     public byte[] getExtension() {
-        // TODO
-        return null;
+        return Arrays.copyOfRange(this.b, 8, 11);
     }
 
     public String toString() {
-        // TODO
-        return null;
+        return getStringName(ByteBuffer.wrap(this.getName()), ByteBuffer.wrap(this.getExtension()));
     }
 
     /**
@@ -47,45 +56,55 @@ class PathElement {
     }
 
     static String getStringName(ByteBuffer name, ByteBuffer ext) {
-        // TODO could remove trailing spaces !
-        return StandardCharsets.UTF_8.decode(name) + "." + StandardCharsets.UTF_8.decode(ext);
+        byte[] namearray = name.array();
+        while (namearray[namearray.length - 1] == 0x20) {
+            namearray = Arrays.copyOf(namearray, namearray.length - 1);
+        }
+        return StandardCharsets.UTF_8.decode(ByteBuffer.wrap(namearray)) + "." + StandardCharsets.UTF_8.decode(ext);
     }
 
-    @Override
-    public boolean equals(Object pathElement) {
-        // TODO
-        return true;
+    public boolean equals(PathElement pathElement) {
+        return Arrays.equals(this.b, pathElement.b);
     }
 }
 
 public class Path {
-    Path(String s) {
 
+    private String[] path;
+    private boolean isAbsolute;
+
+    Path(String s) {
+        this.path = s.split("/");
+        this.isAbsolute = (s.charAt(0) == '/');
     }
 
     int numElement() {
-        // TODO
-        return 1;
+        return this.path.length;
     }
 
     PathElement element(int i) {
-        // TODO
-        return null;
+        return new PathElement(this.path[i]);
     }
 
     PathElement filename() {
-        // TODO
-        return null;
+        return this.element(this.path.length - 1);
     }
 
     boolean isAbsolute() {
-        // TODO
-        return true;
+        return this.isAbsolute;
     }
 
     @Override
     public String toString() {
-        // TODO
-        return "";
+        String s = "";
+        if (isAbsolute) {
+            s += '/';
+        }
+        for (int i = 0; i < path.length - 1; i++) {
+            s += path[i];
+            s = s + "/";
+        }
+        s = s + path[path.length - 1];
+        return s;
     }
 }
