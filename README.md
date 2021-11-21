@@ -1,0 +1,1 @@
+# SE-TemplateInit-FAT32
